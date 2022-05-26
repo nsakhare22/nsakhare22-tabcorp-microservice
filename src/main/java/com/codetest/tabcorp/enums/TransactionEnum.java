@@ -25,6 +25,8 @@ public final class TransactionEnum {
 	
 	public static final String EMPTY_DATA = "Transaction failed - data is empty.";
 	
+	public static final String EMPTY = "";
+	
 	public static final String DUPLICATE_PRODUCTS = "Transaction failed - contains duplicate products for the customer";
 
 }

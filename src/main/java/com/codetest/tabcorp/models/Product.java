@@ -58,7 +58,5 @@ public class Product {
 	public String toString() {
 		return "Product [code=" + code + ", cost=" + cost + ", status=" + status + "]";
 	}
-	
-	
 
 }

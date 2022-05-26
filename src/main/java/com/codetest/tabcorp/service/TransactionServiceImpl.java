@@ -86,8 +86,11 @@ public class TransactionServiceImpl implements TransactionService {
 	 * **/
 	private String processData(List<Transaction> transactionData) {
 		LOG.info("Processing data..");
-		ValidateTransactionData(transactionData);
-		return saveTransactionData(transactionData);
+		String validationStatus = ValidateTransactionData(transactionData);
+		if(!validationStatus.isEmpty())
+			return validationStatus;
+		else
+			return saveTransactionData(transactionData);
 	}
 
 	/**
@@ -102,7 +105,7 @@ public class TransactionServiceImpl implements TransactionService {
 	private String ValidateTransactionData(List<Transaction> transactionData) {
 		for (Transaction transaction : transactionData) {
 			String validationMessage = validateTransaction(transaction);
-			if (!validationMessage.isEmpty())
+			if (validationMessage.length() > 0)
 				return validationMessage;
 		}
 		return ValidateCost(transactionData);
@@ -111,8 +114,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 	/**
 	 * @param transaction 
-	 *  validates the transaction date with current date and sends an
-	 *  invalidate message if the date is past
+	 *  validates the transaction date with current date
 	 *  Along with this, the method will validate products and 
 	 *  status of the product
 	 *  
@@ -124,37 +126,10 @@ public class TransactionServiceImpl implements TransactionService {
 		LocalDateTime now = LocalDateTime.now();
 		if (dtf.format(now).compareTo(transaction.getTime()) > 0)
 			return TransactionEnum.PAST_DATE;
-		else if (duplicateProduct(transaction))
-			return TransactionEnum.DUPLICATE_PRODUCTS;
 		else if (findStatus(transaction))
 			return TransactionEnum.INACTIVE_STATUS;
 		else
-			return TransactionEnum.EMPTY_DATA;
-	}
-
-
-	/***
-	 * @param transaction
-	 * 
-	 * Checks if the product in transaction table exist in Product table
-	 * and not present, sets true flag
-	 * 
-	 * @returns true if product is already present
-	 * false if the product is new
-	 * 
-	 * ***/
-	private boolean duplicateProduct(Transaction transaction) {
-		LOG.debug("contains duplicate product?");
-		String productCode = transactionRepo.findByCustomerID(transaction.getCustomer().getId());
-		if (productCode != null ) {
-			if (productCode.isEmpty())
-				return true;
-			else if (productCode.equalsIgnoreCase(transaction.getProduct().getCode()))
-				return true;
-			else
-				return false;
-		}
-		return false;
+			return TransactionEnum.EMPTY;
 	}
 
 	/***
@@ -204,7 +179,7 @@ public class TransactionServiceImpl implements TransactionService {
 		if (totalCost > 5000)
 			return TransactionEnum.COST_EXCEED;
 		else
-			return TransactionEnum.EMPTY_DATA;
+			return TransactionEnum.EMPTY;
 			
 	}
 
@@ -220,6 +195,11 @@ public class TransactionServiceImpl implements TransactionService {
 	private String saveTransactionData(List<Transaction> transactionData) {
 		String status = TransactionEnum.TRANSACTION_SUCCESS;
 		try {
+			List<Long> ids = transactionData.stream()
+		            .map(transaction -> transaction.getCustomer().getId())
+		            .collect(Collectors.toList());
+		List<Transaction> existingTransactionData = transactionRepo.findAllTransactionsWithIDs(ids);
+		transactionRepo.deleteAll(existingTransactionData);
 		transactionRepo.saveAll(transactionData);
 		} catch(Exception e) {
 			LOG.error("Error while inserting data",e);

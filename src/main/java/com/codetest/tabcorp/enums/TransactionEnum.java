@@ -15,6 +15,8 @@ public final class TransactionEnum {
 	
 	public static final String TRANSACTION_SUCCESS = "Transaction successful";
 	
+	public static final String TRANSACTION_FAILURE = "Transaction failed - Error while inserting data";
+	
 	public static final String PAST_DATE = "Transaction failed - Contains past date";
 	
 	public static final String INACTIVE_STATUS = "Transaction failed - One of the product is inactive or the product doesn't exist";

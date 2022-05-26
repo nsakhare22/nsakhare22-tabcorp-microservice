@@ -10,11 +10,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.codetest.tabcorp.dao.CustomerCostRepo;
+import com.codetest.tabcorp.dao.ProductCostRepo;
 import com.codetest.tabcorp.dao.ProductRepo;
+import com.codetest.tabcorp.dao.TransactionCostRepo;
 import com.codetest.tabcorp.dao.TransactionRepo;
 import com.codetest.tabcorp.enums.TransactionEnum;
+import com.codetest.tabcorp.models.CustomerCost;
 import com.codetest.tabcorp.models.Product;
+import com.codetest.tabcorp.models.ProductCost;
 import com.codetest.tabcorp.models.Transaction;
+import com.codetest.tabcorp.models.TransactionCost;
 
 /**
  * 
@@ -31,6 +37,15 @@ public class TransactionServiceImpl implements TransactionService {
 	TransactionRepo transactionRepo;
 	
 	@Autowired
+	TransactionCostRepo transactionCostRepo;
+	
+	@Autowired
+	ProductCostRepo productCostRepo;
+	
+	@Autowired
+	CustomerCostRepo customerCostRepo;
+	
+	@Autowired
 	ProductRepo productRepo;
 	
 
@@ -45,28 +60,53 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 	
 	@Override
-	public void getCTReport() {
-		//System.out.println("testing" + transactionRepo.findByCustomerID());
-		
-		
+	public List<TransactionCost> getCTReport() {
+		return transactionCostRepo.findByID();
+
+	}
+	
+	@Override
+	public List<ProductCost> getPTReport() {
+		return productCostRepo.findByCode();
+
+	}
+	
+	@Override
+	public List<CustomerCost> findByLocation() {
+		return customerCostRepo.findByLocation();
 	}
 
 	/**
 	 * @param transactionData - transaction data sent to the service from postman
 	 *  
-	 *  The method will iterate over the data and calls validateTransaction, ValidateCostandSave
-	 *  for each transaction and returns a message to the postman about the transaction status 
+	 *  The method will validate data by calling ValidateTransactionData and if valid,
+	 *  saving to database by calling saveTransactionData
 	 * 
 	 * @return transaction status
 	 * **/
 	private String processData(List<Transaction> transactionData) {
 		LOG.info("Processing data..");
+		ValidateTransactionData(transactionData);
+		return saveTransactionData(transactionData);
+	}
+
+	/**
+	 * 
+	 * @param transactionData
+	 * 
+	 * The method will iterate over the data and calls validateTransaction
+	 * and later ValidateCost
+	 * returns a message to the postman about the transaction status 
+	 * 
+	 ***/
+	private String ValidateTransactionData(List<Transaction> transactionData) {
 		for (Transaction transaction : transactionData) {
 			String validationMessage = validateTransaction(transaction);
 			if (!validationMessage.isEmpty())
 				return validationMessage;
 		}
-		return ValidateCostAndSaveData(transactionData);
+		return ValidateCost(transactionData);
+		
 	}
 
 	/**
@@ -79,7 +119,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 *  @return transaction status
 	 * **/
 	private String validateTransaction(Transaction transaction) {
-		LOG.info("Validating transaction..");
+		LOG.info("Validating transaction.."+transaction.getTime());
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TransactionEnum.DATE_PATTERN);
 		LocalDateTime now = LocalDateTime.now();
 		if (dtf.format(now).compareTo(transaction.getTime()) > 0)
@@ -89,7 +129,7 @@ public class TransactionServiceImpl implements TransactionService {
 		else if (findStatus(transaction))
 			return TransactionEnum.INACTIVE_STATUS;
 		else
-			return "";
+			return TransactionEnum.EMPTY_DATA;
 	}
 
 
@@ -153,7 +193,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 * 
 	 * 
 	 * ***/
-	private String ValidateCostAndSaveData(List<Transaction> transactionData) {
+	private String ValidateCost(List<Transaction> transactionData) {
 		long totalCost = transactionData
 		.stream()
 		.map(s -> calculateCost(s))
@@ -164,7 +204,7 @@ public class TransactionServiceImpl implements TransactionService {
 		if (totalCost > 5000)
 			return TransactionEnum.COST_EXCEED;
 		else
-			return saveTransactionData(transactionData);
+			return TransactionEnum.EMPTY_DATA;
 			
 	}
 
@@ -178,15 +218,21 @@ public class TransactionServiceImpl implements TransactionService {
 	 * 
 	 * ***/
 	private String saveTransactionData(List<Transaction> transactionData) {
+		String status = TransactionEnum.TRANSACTION_SUCCESS;
+		try {
 		transactionRepo.saveAll(transactionData);
-		return TransactionEnum.TRANSACTION_SUCCESS;
+		} catch(Exception e) {
+			LOG.error("Error while inserting data",e);
+			status = TransactionEnum.TRANSACTION_FAILURE;
+		}
+		return status;
 	}
 
 	/***
 	 * @param transaction
 	 * 
 	 * calculates the cost of each transaction and sends 
-	 * it back to ValidateCostAndSaveData which will use this 
+	 * it back to ValidateCost which will use this 
 	 * for adding the total cost of the transaction
 	 * 
 	 * @returns cost of each transaction

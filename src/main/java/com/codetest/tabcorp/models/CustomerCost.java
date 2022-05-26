@@ -1,17 +1,18 @@
 package com.codetest.tabcorp.models;
 
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
  * 
- * Customer Entity mapped to the customer table
- * The table contains id, firstname, lastname, email and location.
+ * CustomerCost Entity
+ * The table contains id, firstname, lastname, numTransaction and location.
  * 
  */
 @Entity
-public class Customer {
+public class CustomerCost {
 
 	@Id
 	private long id;
@@ -20,20 +21,21 @@ public class Customer {
 	
 	private String lastname;
 	
-	private String email;
+	@Column(name="num_transaction")
+	private long numTransaction;
 	
 	private String location;
 
-	public Customer(long id, String firstname, String lastname, String email, String location) {
+	public CustomerCost(long id, String firstname, String lastname, long numTransaction, String location) {
 		super();
 		this.id = id;
 		this.firstname = firstname;
 		this.lastname = lastname;
-		this.email = email;
+		this.numTransaction = numTransaction;
 		this.location = location;
 	}
 	
-	public Customer() {
+	public CustomerCost() {
 		super();
 	}
 
@@ -61,14 +63,6 @@ public class Customer {
 		this.lastname = lastname;
 	}
 
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
 	public String getLocation() {
 		return location;
 	}
@@ -77,9 +71,17 @@ public class Customer {
 		this.location = location;
 	}
 
+	public long getNumTransaction() {
+		return numTransaction;
+	}
+
+	public void setNumTransaction(long numTransaction) {
+		this.numTransaction = numTransaction;
+	}
+
 	@Override
 	public String toString() {
-		return "Customer [id=" + id + ", firstname=" + firstname + ", lastname=" + lastname + ", email=" + email
-				+ ", location=" + location + "]";
+		return "CustomerCost [id=" + id + ", firstname=" + firstname + ", lastname=" + lastname + ", numTransaction="
+				+ numTransaction + ", location=" + location + "]";
 	}
 }

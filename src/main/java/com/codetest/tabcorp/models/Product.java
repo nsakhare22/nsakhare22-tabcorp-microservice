@@ -3,6 +3,7 @@ package com.codetest.tabcorp.models;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+
 /**
  * 
  * Product Entity mapped to the product table
@@ -19,6 +20,16 @@ public class Product {
 	
 	private String status;
 
+	public Product(String code, long cost, String status) {
+		super();
+		this.code = code;
+		this.cost = cost;
+		this.status = status;
+	}
+
+	public Product() {
+		super();
+	}
 	public String getCode() {
 		return code;
 	}

@@ -7,6 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+
 /**
  * 
  * Transaction Entity mapped to the transaction table
@@ -32,14 +33,18 @@ public class Transaction {
 	
 	private long quantity;
 
-	public Transaction(Customer customer, Product product, String time, long quantity) {
+	public Transaction(long tabID, Customer customer, Product product, String time, long quantity) {
 		super();
+		this.tabID = tabID;
 		this.customer = customer;
 		this.product = product;
 		this.time = time;
 		this.quantity = quantity;
 	}
-
+	
+	public Transaction() {
+		super();
+	}
 
 	public Customer getCustomer() {
 		return customer;

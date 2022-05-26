@@ -16,9 +16,3 @@ CREATE TABLE transaction (
   quantity INTEGER NOT NULL,
   product_code VARCHAR(255) NOT NULL,
   time VARCHAR(255) NOT NULL);
-
-CREATE TABLE transaction_cost (
-  id INTEGER PRIMARY KEY NOT NULL,
-  code VARCHAR(255) NOT NULL,
-  quantity INTEGER NOT NULL,
-  total_amount INTEGER NOT NULL);

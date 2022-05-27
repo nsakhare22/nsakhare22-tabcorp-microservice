@@ -186,7 +186,8 @@ public class TransactionServiceImpl implements TransactionService {
 	/***
 	 * @param transactionData - transaction data
 	 * 
-	 * Saves the data to database
+	 * checks if the data is duplicate and delete,
+	 * Saves the data to database to avoid duplicates.
 	 * 
 	 * @returns status message of data transaction
 	 * 

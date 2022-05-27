@@ -13,5 +13,5 @@ import com.codetest.tabcorp.models.Product;
 public interface ProductRepo extends JpaRepository<Product, Integer>{
 	
 	 @Query(value = "from Product where code= ?1")
-	 Product findByCode(String code);
+	 public Product findByCode(String code);
 }

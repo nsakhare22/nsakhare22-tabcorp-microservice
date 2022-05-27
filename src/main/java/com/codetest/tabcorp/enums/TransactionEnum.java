@@ -1,4 +1,3 @@
-
 package com.codetest.tabcorp.enums;
 
 /**

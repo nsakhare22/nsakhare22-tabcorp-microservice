@@ -2,9 +2,6 @@ package com.codetest.tabcorp.controller;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,28 +15,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.OngoingStubbing;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.codetest.tabcorp.dao.ProductCostRepo;
 import com.codetest.tabcorp.dao.ProductRepo;
 import com.codetest.tabcorp.dao.TransactionCostRepo;
 import com.codetest.tabcorp.dao.TransactionRepo;
-import com.codetest.tabcorp.models.Customer;
 import com.codetest.tabcorp.models.CustomerCost;
-import com.codetest.tabcorp.models.Product;
 import com.codetest.tabcorp.models.ProductCost;
-import com.codetest.tabcorp.models.Transaction;
 import com.codetest.tabcorp.models.TransactionCost;
-import com.codetest.tabcorp.service.TransactionService;
+import com.codetest.tabcorp.service.TransactionServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -47,24 +38,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * 
  * **/
-@ExtendWith(SpringExtension.class)
-@WebMvcTest
+@ExtendWith(MockitoExtension.class)
 public class TransactionControllerTest {
 
 	@Autowired
 	MockMvc mockMvc;
 
-	@MockBean
-	TransactionService transactionService;
+	@Mock
+	TransactionServiceImpl transactionService;
 
 	@InjectMocks
 	TransactionController transactionController;
 
-	@Autowired
-	ObjectMapper objectMapper;
+	
+	ObjectMapper objectMapper = new ObjectMapper();
 
 	@Mock
 	private ProductRepo productRepo;
+	
+	@Mock
+	private ProductCostRepo productCostRepo;
 
 	@Mock
 	private TransactionRepo transactionRepo;
@@ -76,37 +69,6 @@ public class TransactionControllerTest {
 	public void setup() {
 		MockitoAnnotations.openMocks(this);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(transactionController).build();
-	}
-	
-	/**
-	 * Tests customerTransactionReport method by 
-	 * using dummy data
-	 * 
-	 * **/
-	@Test
-	public void addTransactionTest() throws Exception {
-		Customer customerOne = new Customer(1, "tony", "tony", "tony@abc.com","Australia");
-		Customer customerTwo = new Customer(2, "stark", "stark", "stark@abc.com","US");
-		Customer customerThree = new Customer(3, "Emy", "Emy", "Emy@abc.com","Canada");
-		
-		Product productOne = new Product("Product_001", 40, "Active");
-		Product productTwo = new Product("Product_002", 10, "Active");
-		Product productThree = new Product("Product_003", 20, "Active");
-		
-		Transaction transactionOne = new Transaction(1, customerOne,productOne, "2022-07-08 14:56", 2);
-		Transaction transactionTwo = new Transaction(2, customerTwo,productTwo, "2022-07-08 14:56", 5);
-		Transaction transactionThree = new Transaction(3, customerThree,productThree, "2022-07-08 14:56", 8);
-
-		List<Transaction> transactions = Arrays.asList(transactionOne, transactionTwo,transactionThree);
-		
-		when(transactionService.insertAll(transactions)).thenReturn(anyString());
-
-		mockMvc.perform(post("/addTransaction")
-			.content(objectMapper.writeValueAsString(transactions))
-			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk());
-		
-		assertEquals(anyString(), transactionService.insertAll(transactions));
 	}
 
 	/**

@@ -21,8 +21,5 @@ public interface TransactionCostRepo extends JpaRepository<TransactionCost, Inte
 	  		+ " where c.id = t.customerid and"
 	  		+ " p.code = t.product_code"
 	  		+ " group by c.id, p.code", nativeQuery = true)
-	  List<TransactionCost> findByID();
-	  
-	  @Query (value="select * from transaction_cost", nativeQuery = true)
-	  List<TransactionCost> findAll();
+	  public List<TransactionCost> findByID();
 }

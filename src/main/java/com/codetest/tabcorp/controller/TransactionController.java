@@ -24,7 +24,7 @@ import com.codetest.tabcorp.service.TransactionService;
 public class TransactionController {
 
 	@Autowired
-	TransactionService transactionService;
+	private TransactionService transactionService;
 
 	/***
 	 * 

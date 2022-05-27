@@ -1,0 +1,62 @@
+[
+    {
+        "time": "2022-07-08 14:56",
+        "quantity": 4,
+        "customer": {
+            "id": 10001
+        },
+        "product": {
+            "code": "PRODUCT_001"
+        }
+    },
+    {
+        "time": "2022-08-09 14:56",
+        "quantity": 1,
+        "customer": {
+            "id": 10002
+        },
+        "product": {
+            "code": "PRODUCT_003"
+        }
+    },
+    {
+        "time": "2022-08-09 14:56",
+        "quantity": 3,
+        "customer": {
+            "id": 10001
+        },
+        "product": {
+            "code": "PRODUCT_003"
+        }
+    },
+    {
+        "time": "2022-08-09 14:56",
+        "quantity": 2,
+        "customer": {
+            "id": 10002
+        },
+        "product": {
+            "code": "PRODUCT_003"
+        }
+    },
+    {
+        "time": "2022-08-09 14:56",
+        "quantity": 2,
+        "customer": {
+            "id": 10002
+        },
+        "product": {
+            "code": "PRODUCT_001"
+        }
+    },
+    {
+        "time": "2022-08-09 14:56",
+        "quantity": 10,
+        "customer": {
+            "id": 10002
+        },
+        "product": {
+            "code": "PRODUCT_005"
+        }
+    }
+]

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransactionServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tabcorp</a> &gt; <a href="index.source.html" class="el_package">com.codetest.tabcorp.service</a> &gt; <span class="el_source">TransactionServiceImpl.java</span></div><h1>TransactionServiceImpl.java</h1><pre class="source lang-java linenums">package com.codetest.tabcorp.service;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.codetest.tabcorp.dao.CustomerCostRepo;
+import com.codetest.tabcorp.dao.ProductCostRepo;
+import com.codetest.tabcorp.dao.ProductRepo;
+import com.codetest.tabcorp.dao.TransactionCostRepo;
+import com.codetest.tabcorp.dao.TransactionRepo;
+import com.codetest.tabcorp.enums.TransactionEnum;
+import com.codetest.tabcorp.models.CustomerCost;
+import com.codetest.tabcorp.models.Product;
+import com.codetest.tabcorp.models.ProductCost;
+import com.codetest.tabcorp.models.Transaction;
+import com.codetest.tabcorp.models.TransactionCost;
+
+/**
+ * 
+ * transaction service for inserting data,
+ * getting various report and validating the data
+ *
+ */
+@Service
+<span class="fc" id="L32">public class TransactionServiceImpl implements TransactionService {</span>
+
+<span class="fc" id="L34">	Logger LOG = LoggerFactory.getLogger(TransactionService.class);</span>
+	
+	@Autowired
+	TransactionRepo transactionRepo;
+	
+	@Autowired
+	TransactionCostRepo transactionCostRepo;
+	
+	@Autowired
+	ProductCostRepo productCostRepo;
+	
+	@Autowired
+	CustomerCostRepo customerCostRepo;
+	
+	@Autowired
+	ProductRepo productRepo;
+	
+
+	@Override
+	public String insertAll(List&lt;Transaction&gt; data) {
+<span class="pc bpc" id="L54" title="2 of 4 branches missed.">		if (data != null &amp;&amp; !data.isEmpty()) {</span>
+<span class="fc" id="L55">			String status = processData(data);</span>
+<span class="fc" id="L56">			return status;</span>
+		} else {
+<span class="nc" id="L58">			return TransactionEnum.EMPTY_DATA;</span>
+		}
+	}
+	
+	@Override
+	public List&lt;TransactionCost&gt; getCTReport() {
+<span class="fc" id="L64">		return transactionCostRepo.findByID();</span>
+
+	}
+	
+	@Override
+	public List&lt;ProductCost&gt; getPTReport() {
+<span class="fc" id="L70">		return productCostRepo.findByCode();</span>
+
+	}
+	
+	@Override
+	public List&lt;CustomerCost&gt; findByLocation() {
+<span class="fc" id="L76">		return customerCostRepo.findByLocation();</span>
+	}
+
+	/**
+	 * @param transactionData - transaction data sent to the service from postman
+	 *  
+	 *  The method will validate data by calling ValidateTransactionData and if valid,
+	 *  saving to database by calling saveTransactionData
+	 * 
+	 * @return transaction status
+	 * **/
+	private String processData(List&lt;Transaction&gt; transactionData) {
+<span class="fc" id="L88">		LOG.info(&quot;Processing data..&quot;);</span>
+<span class="fc" id="L89">		String validationStatus = ValidateTransactionData(transactionData);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">		if(!validationStatus.isEmpty())</span>
+<span class="fc" id="L91">			return validationStatus;</span>
+		else
+<span class="fc" id="L93">			return saveTransactionData(transactionData);</span>
+	}
+
+	/**
+	 * 
+	 * @param transactionData
+	 * 
+	 * The method will iterate over the data and calls validateTransaction
+	 * and later ValidateCost
+	 * returns a message to the postman about the transaction status 
+	 * 
+	 ***/
+	private String ValidateTransactionData(List&lt;Transaction&gt; transactionData) {
+<span class="fc bfc" id="L106" title="All 2 branches covered.">		for (Transaction transaction : transactionData) {</span>
+<span class="fc" id="L107">			String validationMessage = validateTransaction(transaction);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">			if (validationMessage.length() &gt; 0)</span>
+<span class="fc" id="L109">				return validationMessage;</span>
+<span class="fc" id="L110">		}</span>
+<span class="fc" id="L111">		return ValidateCost(transactionData);</span>
+		
+	}
+
+	/**
+	 * @param transaction 
+	 *  validates the transaction date with current date
+	 *  Along with this, the method will validate products and 
+	 *  status of the product
+	 *  
+	 *  @return transaction status
+	 * **/
+	private String validateTransaction(Transaction transaction) {
+<span class="fc" id="L124">		LOG.info(&quot;Validating transaction..&quot;+transaction.getTime());</span>
+<span class="fc" id="L125">		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TransactionEnum.DATE_PATTERN);</span>
+<span class="fc" id="L126">		LocalDateTime now = LocalDateTime.now();</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">		if (dtf.format(now).compareTo(transaction.getTime()) &gt; 0)</span>
+<span class="fc" id="L128">			return TransactionEnum.PAST_DATE;</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">		else if (findStatus(transaction))</span>
+<span class="fc" id="L130">			return TransactionEnum.INACTIVE_STATUS;</span>
+		else
+<span class="fc" id="L132">			return TransactionEnum.EMPTY;</span>
+	}
+
+	/***
+	 * @param transaction
+	 * 
+	 * Checks the status of the product and
+	 * if inactive or the product is not valid, sets true flag
+	 * 
+	 * @returns true if product has inactive status
+	 * false if the product is active
+	 * 
+	 * ***/
+	private boolean findStatus(Transaction transaction) {
+<span class="fc" id="L146">		LOG.info(&quot;find the product status..&quot;);</span>
+<span class="fc" id="L147">		Product product = productRepo.findByCode(transaction.getProduct().getCode());</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">		if (product != null) {</span>
+<span class="fc" id="L149">			String status = product.getStatus();</span>
+<span class="fc" id="L150">			LOG.debug(&quot;the product status..&quot;+status);</span>
+<span class="fc" id="L151">			return status.equalsIgnoreCase(TransactionEnum.INACTIVE);</span>
+		} else {
+<span class="fc" id="L153">			return true;</span>
+		}
+	}
+
+	/***
+	 * 
+	 * @param transactionData - transaction data
+	 * 
+	 * Checks if the total cost of transaction is more than 5000
+	 * by calculating the cost of each transaction using calculateCost
+	 * method and sets true flag is the cost exceeds.
+	 * 
+	 * If data is valid calls saveTransactionData
+	 * 
+	 * @returns status message of the validation and data transaction
+	 * 
+	 * 
+	 * ***/
+	private String ValidateCost(List&lt;Transaction&gt; transactionData) {
+<span class="fc" id="L172">		long totalCost = transactionData</span>
+<span class="fc" id="L173">		.stream()</span>
+<span class="fc" id="L174">		.map(s -&gt; calculateCost(s))</span>
+<span class="fc" id="L175">		.collect(Collectors.toList())</span>
+<span class="fc" id="L176">		.stream()</span>
+<span class="fc" id="L177">		.mapToLong(Long::longValue)</span>
+<span class="fc" id="L178">		.sum();</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">		if (totalCost &gt; 5000)</span>
+<span class="fc" id="L180">			return TransactionEnum.COST_EXCEED;</span>
+		else
+<span class="fc" id="L182">			return TransactionEnum.EMPTY;</span>
+			
+	}
+
+	/***
+	 * @param transactionData - transaction data
+	 * 
+	 * checks if the data is duplicate and delete,
+	 * Saves the data to database to avoid duplicates.
+	 * 
+	 * @returns status message of data transaction
+	 * 
+	 * 
+	 * ***/
+	private String saveTransactionData(List&lt;Transaction&gt; transactionData) {
+<span class="fc" id="L197">		String status = TransactionEnum.TRANSACTION_SUCCESS;</span>
+		try {
+<span class="fc" id="L199">			List&lt;Long&gt; ids = transactionData.stream()</span>
+<span class="fc" id="L200">		            .map(transaction -&gt; transaction.getCustomer().getId())</span>
+<span class="fc" id="L201">		            .collect(Collectors.toList());</span>
+<span class="fc" id="L202">		List&lt;Transaction&gt; existingTransactionData = transactionRepo.findAllTransactionsWithIDs(ids);</span>
+<span class="fc" id="L203">		transactionRepo.deleteAll(existingTransactionData);</span>
+<span class="fc" id="L204">		transactionRepo.saveAll(transactionData);</span>
+<span class="nc" id="L205">		} catch(Exception e) {</span>
+<span class="nc" id="L206">			LOG.error(&quot;Error while inserting data&quot;,e);</span>
+<span class="nc" id="L207">			status = TransactionEnum.TRANSACTION_FAILURE;</span>
+<span class="fc" id="L208">		}</span>
+<span class="fc" id="L209">		return status;</span>
+	}
+
+	/***
+	 * @param transaction
+	 * 
+	 * calculates the cost of each transaction and sends 
+	 * it back to ValidateCost which will use this 
+	 * for adding the total cost of the transaction
+	 * 
+	 * @returns cost of each transaction
+	 * 
+	 * 
+	 * ***/
+	private long calculateCost(Transaction transaction) {
+<span class="fc" id="L224">		long cost = productRepo.findByCode(transaction.getProduct().getCode()).getCost();</span>
+<span class="fc" id="L225">		return transaction.getQuantity() * cost;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
